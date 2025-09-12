@@ -85,6 +85,8 @@ which uses the hidden `.cbrain` directory to determine which files to include fr
 Otherwise, the `preproc_run.sh` script is unremarkable.
 The TOPUP-only preprocessed data is in `/cbica/projects/hbcd_dev/pipeline_paper/penn-run/derivatives/no-drbuddi/qsiprep`.
 
+NOTE: This takes a lot of time and disk space and for these reasons it is not going to be re-run.
+
 ### 2. Computing AP and PA FA subtraction for DRBUDDI evaluation
 
 Our SDC benchmark consisteted of subtracting the AP-only FA from the PA-only FA after preprocessing.

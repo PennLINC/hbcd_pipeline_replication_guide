@@ -4,12 +4,13 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=8G
 #SBATCH --time=0:10:00
-#SBATCH --output=../logs/hbcd-scalarwarp-%A_%a.log
+#SBATCH --output=hbcd-scalarwarp-%A_%a.log
 #SBATCH --array=1-517
 
+# CHANGE THIS!!
+REPRO_DIR="${HOME}/rep1"
 
 SIMG="${HOME}"/images/qsirecon-1.0.1RC0.sif
-CODE_DIR="${HOME}"/s3qsiprep/code
 RESULTS_CSV="${HOME}/tier2_local/code/hbcd_1.0.0RC0_scanner_qc.csv"
 
 [ -z "${JOB_ID}" ] && JOB_ID=TEST
@@ -28,7 +29,7 @@ subject_row=$(head -n $((${SLURM_ARRAY_TASK_ID} + 1)) ${RESULTS_CSV} | tail -n 1
 subid=$(echo $subject_row | sed 's/^.*,\(sub-[A-Za-z0-9]*\).*$/\1/')
 sesid=$(echo $subject_row | sed 's/^.*,\(ses-[A-Za-z0-9]*\).*$/\1/')
 
-OUTPUT_DIR=${HOME}/pipeline_paper/volumetric/data/${subid}/${sesid}
+OUTPUT_DIR=${REPRO_DIR}/volumetric/data/${subid}/${sesid}
 mkdir -p ${OUTPUT_DIR}
 
 
