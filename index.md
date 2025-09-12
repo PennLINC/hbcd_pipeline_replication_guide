@@ -101,16 +101,27 @@ cd processing_code/drbuddi_eval
 sbatch run_split_peds.sh
 ```
 
-After running this you'll have TORTOISE-compatible unzipped float32 niftis for just the AP and PA scans in `~/pipeline_paper/separate_fa/ nodrbuddi` and `~/pipeline_paper/separate_fa/drbuddi`.
+After running this you'll have TORTOISE-compatible unzipped float32 niftis for just the AP and PA scans in `${REPRO_DIR}/separate_fa/nodrbuddi` and `${REPRO_DIR}/separate_fa/drbuddi`.
 
 Next we compute FA on the AP and PA scans again using TORTOISE.
 The script for this is `processing_code/drbuddi_eval/compute_fas.sh`.
+Continuing from the session above:
+
+```bash
+sbatch compute_fas.sh
+```
+
+This will take awhile.
 The tensor is fit with `EstimateTensor` and the FA is computed with `ComputeFAMap`.
 At the end of the script, the subtraction of the AP and PA FA images is calculated with `3dcalc` from AFNI.
 
 With the subtractions calculated, we need to warp them to template space for comparison.
 Instead of the MNIInfant templates, we will warp them all to NLin6.
 The code for this is in `processing_code/drbuddi_eval/warp_fa_diffs.sh`
+
+```bash
+sbatch warp_fa_diffs.sh
+```
 
 Finally, with the diffs all warped to NLin6, we get the group averages and plot them.
 The averages are created with 
@@ -129,6 +140,20 @@ The plotting happens in `figure_code/figure_5.py`.
 
 We need to warp both the masks and the scalar maps into NLin6.
 Both the masks and the scalar maps are warped in `processing_code/mass_univariate/warp_scalars.sh`.
+Be sure to change `REPRO_DIR`.
+
+```bash
+cd processing_code/mass_univariate
+sbatch warp_scalars.sh
+```
+
+After warping, you'll need to make some csvs with the warped files.
+Edit `make_convoxel_csvs.py` so `repro_dir` points to your replication directory.
+
+```bash
+python make_convoxel_csvs.py
+```
+
 ModelArray requires "cohort" csvs and h5 files to run.
 We created a csv file for each parametric scalar map (RTOP, FA, MD)
 We used containerized `confixel` to create ModelArray h5 files in `processing_code/mass_univariate/make_convoxel_h5s.sh`.
