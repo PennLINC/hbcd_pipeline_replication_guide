@@ -6,9 +6,12 @@
 #SBATCH --time=2-00:00:00
 #SBATCH --output=warp_fas.log
 
+# CHANGE THIS!!
+REPRO_DIR="${HOME}/rep1"
+
 SIMG="${HOME}"/images/qsirecon-1.0.1RC0.sif
 REFVOL=${HOME}/pipeline_paper/volumetric/templates/nlin6_1.7mm.nii.gz
-base=/cbica/projects/hbcd_dev/pipeline_paper/separate_fa
+base=${REPRO_DIR}/separate_fa
 OUTPUT_DIR=${HOME}/pipeline_paper/separate_fas/appa_diffs_mni
 mkdir -p ${OUTPUT_DIR}
 

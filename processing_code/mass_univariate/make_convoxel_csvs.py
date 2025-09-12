@@ -3,6 +3,10 @@ import pandas as pd
 from pathlib import Path
 
 home = Path.home()
+
+# CHANGE THIS!!
+repro_dir = home / "rep1"
+
 metadata_csv_path = home / "tier2_local" / "code" / "hbcd_1.0.0RC0_scanner_qc.csv"
 metadata_df = pd.read_csv(metadata_csv_path)
 metadata_columns = [
@@ -15,10 +19,10 @@ metadata_columns = [
 metadata_df = metadata_df[["subject_id", "session_id", "site", "age", "gestational_age", "head_size"] + metadata_columns]
 
 # The path to where the resampled scalars are
-mni_scalars_dir = home / "pipeline_paper" / "volumetric" / "data"
+mni_scalars_dir = repro_dir / "volumetric" / "data"
 mask_pattern = "{subid}/{sesid}/{subid}_{sesid}_space-MNI152NLin6Asym_desc-brain_mask.nii.gz"
 dwimap_pattern = "{subid}/{sesid}/qsirecon-{recon_suffix}/{subid}_{sesid}_space-MNI152NLin6Asym_model-{model}_param-{param}_dwimap.nii.gz"
-modelarray_dir = home / "pipeline_paper" / "volumetric" / "modelarray"
+modelarray_dir = repro_dir / "volumetric" / "modelarray"
 
 
 def create_modelarray_data(scalar_name, recon_suffix, model, param):
