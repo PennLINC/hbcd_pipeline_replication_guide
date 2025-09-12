@@ -48,6 +48,9 @@ All project analyses are described below along with the corresponding code on Gi
 *4.* Running ModelArray
 *5.* Evaluating SynthSeg performance
 
+
+In each of the scripts, there is a variable `REPRO_DIR` that needs to be set to the directory where you're running the replication from.
+
 <br>
 
 ### 0. Getting Erik's data
@@ -92,6 +95,12 @@ NOTE: This takes a lot of time and disk space and for these reasons it is not go
 Our SDC benchmark consisteted of subtracting the AP-only FA from the PA-only FA after preprocessing.
 First, we have to split the AP and PA volumes from the concatenated output into individual scans
 This happens in `processing_code/drbuddi_eval/run_split_peds.sh`.
+
+```bash
+cd processing_code/drbuddi_eval
+sbatch run_split_peds.sh
+```
+
 After running this you'll have TORTOISE-compatible unzipped float32 niftis for just the AP and PA scans in `~/pipeline_paper/separate_fa/ nodrbuddi` and `~/pipeline_paper/separate_fa/drbuddi`.
 
 Next we compute FA on the AP and PA scans again using TORTOISE.

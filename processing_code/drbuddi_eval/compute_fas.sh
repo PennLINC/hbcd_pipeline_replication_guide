@@ -6,7 +6,8 @@
 #SBATCH --time=2-00:00:00
 #SBATCH --output=calc_fas.log
 
-base=/cbica/projects/hbcd_dev/pipeline_paper/separate_fa
+REPRO_DIR="${HOME}/rep1"
+base=${REPRO_DIR}/separate_fa
 APT_EXEC="apptainer exec -B $base $HOME/images/qsirecon-1.0.0.sif"
 cd $base
 
@@ -18,8 +19,6 @@ do
     ${APT_EXEC} EstimateTensor --i ${fname} -b 1250
     dt_fname=${fname/.nii/_L1_DT.nii}
     ${APT_EXEC} ComputeFAMap ${dt_fname} 1
-    ${APT_EXEC} ComputeADMap ${dt_fname}
-    ${APT_EXEC} ComputeDECMap --i ${dt_fname} --color_scalexp 0.3 --color_par_3 0.7
     let ncomps++
 done
 
@@ -29,13 +28,8 @@ do
     echo "Running image #${ncomps}"
     ap_fa_file=${pa_fa_file/dir-PA/dir-AP}
     appa_fa_diff_file=${pa_fa_file/dir-PA/dir-APPAdiff}
-    pa_ad_file=${pa_fa_file/DT_FA/DT_AD}
-    ap_ad_file=${pa_ad_file/dir-PA/dir-AP}
-    appa_ad_diff_file=${pa_ad_file/dir-PA/dir-APPAdiff}
-
     
     3dcalc -a ${ap_fa_file} -b ${pa_fa_file} -expr 'abs(a-b)' -prefix ${appa_fa_diff_file}
-    3dcalc -a ${ap_ad_file} -b ${pa_ad_file} -expr 'abs(a-b)' -prefix ${appa_ad_diff_file}
 
     let ncomps++
 done

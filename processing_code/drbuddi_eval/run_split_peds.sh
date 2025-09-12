@@ -9,7 +9,7 @@
 # Split the drbuddi outputs
 conda activate hbcd
 
-OUTDIR="${HOME}/rep1/seprate_fa"
+OUTDIR="${HOME}/rep1/separate_fa"
 
 for sesid in ses-V02 ses-V03
 do
