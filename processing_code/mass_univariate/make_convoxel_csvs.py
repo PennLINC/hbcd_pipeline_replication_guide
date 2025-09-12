@@ -23,6 +23,7 @@ mni_scalars_dir = repro_dir / "volumetric" / "data"
 mask_pattern = "{subid}/{sesid}/{subid}_{sesid}_space-MNI152NLin6Asym_desc-brain_mask.nii.gz"
 dwimap_pattern = "{subid}/{sesid}/qsirecon-{recon_suffix}/{subid}_{sesid}_space-MNI152NLin6Asym_model-{model}_param-{param}_dwimap.nii.gz"
 modelarray_dir = repro_dir / "volumetric" / "modelarray"
+modelarray_dir.mkdir(parents=True, exist_ok=True)
 
 
 def create_modelarray_data(scalar_name, recon_suffix, model, param):
