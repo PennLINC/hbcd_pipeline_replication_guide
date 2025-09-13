@@ -146,7 +146,8 @@ Be sure to change `REPRO_DIR`.
 cd processing_code/mass_univariate
 sbatch warp_scalars.sh
 ```
-
+Let this run overnight. 
+It also is not optimized.
 After warping, you'll need to make some csvs with the warped files.
 Edit `make_convoxel_csvs.py` so `repro_dir` points to your replication directory.
 
