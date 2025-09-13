@@ -1,12 +1,15 @@
 # Get command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 
+# CHANGE THIS!!
+repro_dir <- "/cbica/projects/hbcd_dev/rep1"
+
 # Check if enough arguments are provided
 if (length(args) < 4) {
   stop("Usage: Rscript model_scalar.R <h5_file> <cohort_csv> <num_cpus>")
 }
 library(ModelArray)
-ma_root <- "/cbica/projects/hbcd_dev/pipeline_paper/volumetric/modelarray"
+ma_root <- paste0(repro_dir, "/volumetric/modelarray")
 
 scalar_name <- args[1]
 ma_h5  <- args[2]

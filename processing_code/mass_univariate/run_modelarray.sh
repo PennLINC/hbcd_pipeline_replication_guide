@@ -4,13 +4,15 @@
 #SBATCH --cpus-per-task=10
 #SBATCH --mem=18G
 #SBATCH --time=4:00:00
-#SBATCH --output=../logs/hbcd-ma-lm-%A_%a.log
+#SBATCH --output=hbcd-ma-lm-%A_%a.log
 #SBATCH --array=1-3
 
+# CHANGE THIS!!
+REPRO_DIR="${HOME}/rep1"
 
 SIMG="${HOME}"/images/confixel-0.1.5.sif
-MA_INPUT_DIR="${HOME}"/pipeline_paper/volumetric/modelarray
-EXE_SCRIPT="${MA_INPUT_DIR}"/code/model_scalar.R
+MA_INPUT_DIR="${REPRO_DIR}/volumetric/modelarray"
+EXE_SCRIPT="${PWD}"/model_scalar.R
 GROUP_MASK="${HOME}"/pipeline_paper/volumetric/templates/nlin6_1.7mm_mask.nii.gz
 
 # fail whenever something is fishy, use -x to get verbose logfiles

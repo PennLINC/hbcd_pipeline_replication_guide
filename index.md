@@ -158,6 +158,15 @@ python make_convoxel_csvs.py
 ModelArray requires "cohort" csvs and h5 files to run.
 We created a csv file for each parametric scalar map (RTOP, FA, MD)
 We used containerized `confixel` to create ModelArray h5 files in `processing_code/mass_univariate/make_convoxel_h5s.sh`.
+This runs quickly, so we can do it interactively:
+
+```bash
+bash make_convoxel_h5s.sh
+```
+
+When I ran this I found that there was an empty nifti file for some reason.
+To fix it I deleted the empty nifti file and resubmitted `warp_scalars.sh`.
+Hopefully you won't run into this.
 
 
 ### 4. Running ModelArray
@@ -165,7 +174,7 @@ We used containerized `confixel` to create ModelArray h5 files in `processing_co
 The actual ModelArray run was launched with 
 
 ```bash
-sbatch processing_code/mass_univariate/run_modelarray.sh
+sbatch run_modelarray.sh
 ```
 
 Which runs the actual model fitting in R (using `code/mass_univariate/model_scalar.R`),
