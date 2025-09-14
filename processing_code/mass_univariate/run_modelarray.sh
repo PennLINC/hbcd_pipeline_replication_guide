@@ -5,7 +5,7 @@
 #SBATCH --mem=18G
 #SBATCH --time=4:00:00
 #SBATCH --output=hbcd-ma-lm-%A_%a.log
-#SBATCH --array=1-3
+#SBATCH --array=0-2
 
 # CHANGE THIS!!
 REPRO_DIR="${HOME}/rep1"
