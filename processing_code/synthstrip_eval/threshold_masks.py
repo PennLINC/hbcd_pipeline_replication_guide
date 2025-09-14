@@ -11,7 +11,7 @@ home = Path.home()
 repro_dir = home / "rep1"
 
 metadata_csv_path = home / "tier2_local" / "code" / "hbcd_1.0.0RC0_scanner_qc.csv"
-mni_scalars_dir = repro_dir/ "pipeline_paper" / "volumetric" / "data"
+mni_scalars_dir = repro_dir/ "volumetric" / "data"
 mask_pattern = "{subid}/{sesid}/{subid}_{sesid}_space-MNI152NLin6Asym_desc-brain_mask.nii.gz"
 
 
