@@ -11,8 +11,13 @@ import imageio
 import numpy as np
 import glob
 
+# CHANGE THIS!!
+results_dir = "/Users/mcieslak/projects/hbcd/hbcd_pipeline_replication_guide/rep1/modelarray"
+# this directory should contain directories:
+#     - dsistudiotensor_fa_lm0 dsistudiotensor_md_lm0 mapmri_rtop_lm0
+
+
 # Constants that don't depend on the scalar name
-results_dir = "/Users/mcieslak/projects/hbcd/pipeline_paper/qc_stats/modelarray_results"
 model_id = "lm0"
 map_names = [
     "gestational_age.statistic",
@@ -21,7 +26,7 @@ map_names = [
     "ManufacturerPhilips.statistic",
     "model.adj.r.squared",
 ]
-bg_img = load_img("nlin6_crop.nii.gz")
+bg_img = load_img("../templates/nlin6_crop.nii.gz")
 
 # z coordinates for making cut planes
 cut_coords = [51, 31, 21, 3, -12, -36][::-1]
@@ -36,7 +41,7 @@ def show_map(scalar_name):
     images = []
     for map_name in map_names:
         stat_map_file = f"{results_dir}/{scalar_name}_{model_id}/results_lm_{map_name}.nii.gz"
-        kw = {"vmin": -1, "vmax": 1} if "adj.r" in map_name else {"vmin": -30, "vmax": 30}
+        kw = {"vmax": 1} if "adj.r" in map_name else {"vmax": 30}
         plot_stat_map(
             stat_map_file,
             bg_img=bg_img,
@@ -68,7 +73,6 @@ def show_map(scalar_name):
         black_bg=True,
         resampling_interpolation="nearest",
         output_file=f"figures/has_adj.r_colorbar.svg",
-        vmin=-1,
         vmax=1,
     )
     plot_stat_map(
@@ -83,7 +87,6 @@ def show_map(scalar_name):
         black_bg=True,
         resampling_interpolation="nearest",
         output_file=f"figures/has_statistic_colorbar.svg",
-        vmin=-30,
         vmax=30,
     )
 

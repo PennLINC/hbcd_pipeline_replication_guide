@@ -171,7 +171,8 @@ Hopefully you won't run into this.
 
 ### 4. Running ModelArray
 
-The actual ModelArray run was launched with 
+Be sure to change `REPRO_DIR` in `run_modelarray.sh` and `repro_dir` in `model_scalar.R`.
+Then you can run the linear models with
 
 ```bash
 sbatch run_modelarray.sh
@@ -179,7 +180,10 @@ sbatch run_modelarray.sh
 
 Which runs the actual model fitting in R (using `code/mass_univariate/model_scalar.R`),
 and also reruns convoxel to get the model results back into nifti format.
-These nifti files were visualized with `figure_code/ModelArrayAgeResults.py`
+In `$REPRO_DIR/volumetric/modelarray` you will find directories with niftis of all the results.
+You need to download these directories to your computer so you can visualize the results.
+The visualization is done with `figure_code/ModelArrayAgeResults.py`.
+I needed to do some work in Inkscape to get the colorbars and text to look good.
 
 
 ### 5. Evaluating SynthSeg performance
