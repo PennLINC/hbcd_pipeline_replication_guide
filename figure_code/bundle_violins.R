@@ -1,68 +1,5 @@
-library(tidyverse)
-library(broom)
-library(arrow)
-library(patchwork)
-library(cowplot)
-library(ggridges)
-library(kableExtra)
-library(flextable)
-library(officer)
-
-POINT_ALPHA=0.5
-
-# Colorblind-friendly colors for scanner manufacturers
-SCANNER_COLORS <- c(
-    "Siemens" = "#0077BB",  # Blue
-    "GE" = "#EE7733",       # Orange
-    "Philips" = "#009988"   # Teal
-)
-
-plot_theme_double_col <- theme_bw(
-  base_family="Helvetica",
-  base_size=12) +
-  theme(axis.text = element_text(size=10),
-        axis.title = element_text(size=12),
-        legend.text = element_text(size=10),
-        legend.title = element_text(size=12),
-        plot.title = element_text(size=14),
-        plot.margin = margin(t=2, r=2, b=2, l=2, unit="pt"),
-        legend.position="bottom")
-
-plot_theme_single_col <- plot_theme_double_col +
-  theme(
-    axis.text = element_text(size=8),
-    axis.title = element_text(size=9),
-    legend.text = element_text(size=8),
-    legend.title = element_text(size=9))
-
-
-# Save a plot as an svg with a single column
-save_svg_single_col <- function(filename, width=3.5, height=2.5){
-  ggsave(filename,
-       width=width,
-       height=height,
-       units="in",
-       dpi=300)
-}
-
-save_svg_double_col <- function(filename, width=7, height=3.5){
-  ggsave(filename,
-       width=width,
-       height=height,
-       units="in",
-       dpi=300)
-}
-
-demos <- read.csv("hbcd_1.0.0RC0_scanner_qc.csv")
-print(paste("Number of rows with NA in gestational_age:",
-            sum(is.na(demos$gestational_age))))
-
-# Remove rows with NA in gestational_age
-demos <- demos %>%
-  filter(!is.na(gestational_age))
-
-
-
+# Load shared configuration (libraries, themes, colors, utility functions)
+source("shared_config.R")
 
 read_atk_parquet <- function(atk_parquet, method_name){
   # We need to rename some of the columns because they are hard to
@@ -156,10 +93,7 @@ split_at_capital <- function(x) {
 }
 
 plot_bundle_values_grid <- function(metrics) {
-  # Create figures directory if it doesn't exist
-  if (!dir.exists("figures")) {
-    dir.create("figures")
-  }
+
 
   # Calculate the number of bundles in each type for relative heights
   bundle_counts <- atk_df %>%
@@ -303,7 +237,7 @@ plot_bundle_values_grid <- function(metrics) {
 
   # Save the combined plot
   ggsave(
-    filename = file.path("figures", paste0("bundle_values_grid_", paste(metrics, collapse="_"), ".svg")),
+    filename = file.path(paste0("bundle_values_grid_", paste(metrics, collapse="_"), ".svg")),
     plot = combined_plot,
     width = 3.2 * length(metrics),  # Reduced from 8 to 4
     height = sum(relative_heights) * 1.4,  # Reduced from 3.5 to 1.75
@@ -312,7 +246,7 @@ plot_bundle_values_grid <- function(metrics) {
   )
   # Save the combined plot
   ggsave(
-    filename = file.path("figures", paste0("bundle_values_grid_", paste(metrics, collapse="_"), ".png")),
+    filename = file.path(paste0("bundle_values_grid_", paste(metrics, collapse="_"), ".png")),
     plot = combined_plot,
     width = 3.2 * length(metrics),  # Reduced from 8 to 4
     height = sum(relative_heights) * 1.4,  # Reduced from 3.5 to 1.75
@@ -331,10 +265,7 @@ plot_bundle_values_grid(metrics_to_plot)
 metrics_to_plot <- c("total_volume_mm3", "total_area_of_end_regions_mm2", "irregularity")
 
 plot_bundle_values_grid <- function(metrics) {
-  # Create figures directory if it doesn't exist
-  if (!dir.exists("figures")) {
-    dir.create("figures")
-  }
+
 
   # Calculate the number of bundles in each type for relative heights
   bundle_counts <- atk_df %>%
@@ -478,7 +409,7 @@ plot_bundle_values_grid <- function(metrics) {
 
   # Save the combined plot
   ggsave(
-    filename = file.path("figures", paste0("bundle_geometry_grid_", paste(metrics, collapse="_"), ".svg")),
+    filename = file.path(paste0("bundle_geometry_grid_", paste(metrics, collapse="_"), ".svg")),
     plot = combined_plot,
     width = 3.2 * length(metrics),  # Reduced from 8 to 4
     height = sum(relative_heights) * 1.4,  # Reduced from 3.5 to 1.75
@@ -486,7 +417,7 @@ plot_bundle_values_grid <- function(metrics) {
     dpi = 300
   )
   ggsave(
-    filename = file.path("figures", paste0("bundle_geometry_grid_", paste(metrics, collapse="_"), ".png")),
+    filename = file.path(paste0("bundle_geometry_grid_", paste(metrics, collapse="_"), ".png")),
     plot = combined_plot,
     width = 3.2 * length(metrics),  # Reduced from 8 to 4
     height = sum(relative_heights) * 1.4,  # Reduced from 3.5 to 1.75

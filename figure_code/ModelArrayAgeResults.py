@@ -34,7 +34,7 @@ cut_coords = [51, 31, 21, 3, -12, -36][::-1]
 
 def show_map(scalar_name):
     # Create temporary directory for individual maps
-    temp_dir = f"figures/temp_{scalar_name}"
+    temp_dir = f"temp_{scalar_name}"
     os.makedirs(temp_dir, exist_ok=True)
 
     # Generate individual maps
@@ -72,7 +72,7 @@ def show_map(scalar_name):
         draw_cross=False,
         black_bg=True,
         resampling_interpolation="nearest",
-        output_file=f"figures/has_adj.r_colorbar.svg",
+        output_file=f"has_adj.r_colorbar.svg",
         vmax=1,
     )
     plot_stat_map(
@@ -86,7 +86,7 @@ def show_map(scalar_name):
         draw_cross=False,
         black_bg=True,
         resampling_interpolation="nearest",
-        output_file=f"figures/has_statistic_colorbar.svg",
+        output_file=f"has_statistic_colorbar.svg",
         vmax=30,
     )
 
@@ -94,7 +94,7 @@ def show_map(scalar_name):
     combined_image = np.vstack(images)
 
     # Save combined image
-    imageio.imwrite(f"figures/{scalar_name}_combined.png", combined_image)
+    imageio.imwrite(f"{scalar_name}_combined.png", combined_image)
 
     # Clean up temporary files
     for file in glob.glob(f"{temp_dir}/*.png"):

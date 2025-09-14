@@ -47,9 +47,10 @@ All project analyses are described below along with the corresponding code on Gi
 *3.* Preparing QSIRecon parametric microstructure maps for ModelArray 
 *4.* Running ModelArray
 *5.* Evaluating SynthSeg performance
+*6.* Making the rest of the figures
 
 
-In each of the scripts, there is a variable `REPRO_DIR` that needs to be set to the directory where you're running the replication from.
+In each of the scripts, there is a variable `REPRO_DIR` or `repro_dir` that needs to be set to the directory where you're running the replication from.
 
 <br>
 
@@ -224,7 +225,8 @@ cd ../figure_code
 python ModelArrayAgeResults.py
 ```
 
-I needed to do some work in Inkscape to get the colorbars and text to look good.
+I needed to do some work in Inkscape to get the colorbars and text to look good. 
+The svg figures are created so I can import the colorbar directly in Inkscape.
 
 
 ### 5. Evaluating SynthSeg performance
@@ -251,5 +253,24 @@ Download these to `figure_code` and run
 python si_figure_2.py
 ```
 
+This will produce a ton of single pngs that I put together in Inkscape.
 
-Results from sensitivity analyses are visualized using this Rmd file: [/manuscript/results/supp_figures.Rmd](https://github.com/PennLINC/network_replication/blob/main/results/supp_figures.Rmd). The knitted Rmd file displaying supplementary figures can be downloaded at [/manuscript/results/supp_figures.html](https://github.com/PennLINC/network_replication/blob/main/results/supp_figures.html) and viewed on your browswer.
+
+### 6. Making the rest of the figures
+
+The rest of the figures need demographics files so we can filter out subjects/sessions that are missing age info.
+Since this info is protected by a DUC, we do not include it in this repo.
+We will figure out how to share this upon reasonable request when the DUC system is more clear.
+Critical note: I downloaded some subjects/sessions after compiling the dataset for this paper :facepalm:.
+There are therefore some additional subjects/sessions that we don't have the full work-up for and haven't verified the demographics.
+To match the exact info used for the paper, use the `hbcd_1.0.0RC0_scanner_qc.csv` I created when I started working on this paper.
+
+
+```bash
+cd figure_code
+Rscript plot_cnr_ndc.R
+Rscript si_figure3.R
+Rscript bundle_violins.R
+```
+
+You'll see all the rest of the figures/tables used in the paper!

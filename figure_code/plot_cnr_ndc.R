@@ -1,92 +1,5 @@
-library(tidyverse)
-library(broom)
-library(patchwork)
-library(cowplot)
-library(ggridges)
-library(kableExtra)
-library(flextable)
-library(officer)
-
-POINT_ALPHA <- 0.05
-
-# Colorblind-friendly colors for scanner manufacturers
-SCANNER_COLORS <- c(
-  "Siemens" = "#0077BB", # Blue
-  "GE" = "#EE7733", # Orange
-  "Philips" = "#009988" # Teal
-)
-
-plot_theme_double_col <- theme_bw(
-  base_family = "Helvetica",
-  base_size = 12
-) +
-  theme(
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12),
-    legend.text = element_text(size = 10),
-    legend.title = element_text(size = 12),
-    plot.title = element_text(size = 14),
-    plot.margin = margin(t = 2, r = 2, b = 2, l = 2, unit = "pt"),
-    legend.position = "bottom"
-  )
-
-plot_theme_single_col <- plot_theme_double_col +
-  theme(
-    axis.text = element_text(size = 8),
-    axis.title = element_text(size = 9),
-    legend.text = element_text(size = 8),
-    legend.title = element_text(size = 9)
-  )
-
-
-# Save a plot as an svg with a single column
-save_svg_single_col <- function(filename, width = 3.5, height = 2.5) {
-  ggsave(filename,
-    width = width,
-    height = height,
-    units = "in",
-    dpi = 300
-  )
-}
-
-save_svg_double_col <- function(filename, width = 7, height = 3.5) {
-  ggsave(filename,
-    width = width,
-    height = height,
-    units = "in",
-    dpi = 300
-  )
-}
-
-demos <- read.csv("brain_mask_info.csv")
-
-# Merge in the dwi brain mask info, prefix the non-id columns with "dwi_"
-dwi_brain_mask_info <- read.csv("dwi_brain_mask_info.csv") %>%
-  rename_with(~ paste0("dwimask_", .x), -c(subject_id, session_id))
-demos <- merge(demos, dwi_brain_mask_info, by = c("subject_id", "session_id"))
-
-
-print(paste(
-  "Number of rows with NA in gestational_age:",
-  sum(is.na(demos$gestational_age))
-))
-
-# Remove rows with NA in gestational_age
-demos <- demos %>%
-  filter(!is.na(gestational_age))
-
-# Verify removal
-print(paste("Number of rows remaining:", nrow(demos)))
-
-table(demos$session_id)
-
-# convert age to weeks
-demos <- demos %>%
-  mutate(age = age * 52.1429)
-
-# Remove rows in ses-V01 with gestational age > 60 weeks
-demos <- demos %>%
-  filter(!(session_id == "ses-V02" & gestational_age > 60))
+# Load shared configuration (libraries, themes, colors, utility functions)
+source("shared_config.R")
 
 # Create longer dataframe for neighbor distance correlations (NDC)
 demos_ndc <- demos %>%
@@ -216,13 +129,6 @@ demos %>%
     position = "left",
     font_size = 12
   )
-
-
-
-
-
-
-
 
 # Create ridgeline plot comparing Raw vs Processed NDC by manufacturer
 ndc_plot <- demos_ndc %>%
