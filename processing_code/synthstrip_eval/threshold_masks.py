@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
-import nilearn.image as nim
-import nibabel as nib
 import pandas as pd
 import argparse
 import subprocess
 
 home = Path.home()
-metadata_csv_path = home / "tier2_local" / "code" / "hbcd_1.0.0RC0_scanner_qc.csv"
+
+# CHANGE THIS!!
+repro_dir=home / "rep1"
+
+cwd_dir = Path.cwd()
+
+metadata_csv_path = cwd_dir.parent / "gather_stats" / "hbcd_1.0.0RC0_scanner_qc.csv"
 mni_scalars_dir = home / "pipeline_paper" / "volumetric" / "data"
 mask_pattern = "{subid}/{sesid}/{subid}_{sesid}_space-MNI152NLin6Asym_desc-brain_mask.nii.gz"
 

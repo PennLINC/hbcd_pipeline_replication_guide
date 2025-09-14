@@ -68,11 +68,38 @@ They are named `qsirecon-DIPYDKI`, `qsirecon-DSIStudio`, `qsirecon-TORTOISE_mode
 
 The tabular data used for creating figures comes from looping over Erik's results.
 To gather the scanner metadata I ran `processing_code/gather_stats/compile_metadata.py`.
-Next I ran `processing_code/gather_stats/compile_group_qc_csv.py`,
-which combines the metadata with the automated QC measures from QSIPrep.
+
+```bash
+cd processing_code/gather_stats
+python compile_metadata.py
+```
+This will create `hbcd1_1.0.0RC1_scanning_info.csv`,
+which contains info for every single scan, including scans that won't be processed due to QC.
+Do not be alarmed by the large number in the progress bar - it is for all the individual nifti files.
+
+Next, we get the QC measures from Erik's QSIPrep run and merge them with the metadata.
+
+```bash
+python compile_group_qc_csv.py
+```
+
 Critically, this one produces the `hbcd1_1.0.0RC01scanner_qc.csv` that serves as the basis for most of the rest of these scripts.
-The QSIRecon outputs got concatenated using `processing_code/gather_stats/make_tabular_derivatives.py`,
-producing the parquet files used for the bundle figures.
+
+Finally, gather all the bundle measures with 
+
+```bash
+python make_tabular_derivatives.py
+```
+
+Which will produce
+ * `group_DIPYDKI_scalarstats.parquet`
+ * `group_DSIStudio_scalarstats.parquet`
+ * `group_TORTOISE_model-MAPMRI_scalarstats.parquet`
+ * `group_TORTOISE_model-tensor_scalarstats.parquet`
+ * `group_DSIStudio_tdistats.parquet`
+ * `group_DSIStudio_bundlestats.parquet`
+
+To make most of the figures, scp these parquet files and `hbcd1_1.0.0RC01scanner_qc.csv` into `figure_code/`.
 
 ### 1.Running TOPUP-only QSIPrep on CUBIC  
 For DRBUDDI benchmarking we needed to rerun QSIPrep on the same data as Erik with just TOPUP instead of TOPUP+DRBUDDI.
