@@ -183,6 +183,14 @@ and also reruns convoxel to get the model results back into nifti format.
 In `$REPRO_DIR/volumetric/modelarray` you will find directories with niftis of all the results.
 You need to download these directories to your computer so you can visualize the results.
 The visualization is done with `figure_code/ModelArrayAgeResults.py`.
+It has to be run from the `figure_code` directory,
+and be sure to change the `results_dir` variable to point to where you downloaded the modelarray results.
+
+```bash
+cd ../figure_code
+python ModelArrayAgeResults.py
+```
+
 I needed to do some work in Inkscape to get the colorbars and text to look good.
 
 
