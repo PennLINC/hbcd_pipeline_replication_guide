@@ -2,7 +2,7 @@
 import os
 from matplotlib import colors
 import matplotlib.pyplot as plt
-from nilearn.plotting import plot_stat_map
+from nilearn.plotting import plot_stat_map, plot_img
 import nilearn.image as nim
 import numpy as np
 from pathlib import Path
@@ -10,10 +10,10 @@ import imageio.v2 as imageio
 from scipy.ndimage import binary_erosion
 
 vmax = 1.0
-vmin = 0.0
+vmin = 0.00001
 
-image_dir = Path("/Users/mcieslak/projects/hbcd/coverage_maps/")
-bg_image = nim.load_img(image_dir / "nlin6_crop.nii.gz")
+image_dir = Path.cwd()
+bg_image = nim.load_img(image_dir.parent / "templates" / "nlin6_crop.nii.gz")
 
 slices = {
     "y": [-36.9],
@@ -37,6 +37,8 @@ cmap = colors.LinearSegmentedColormap.from_list(
     twilight_cmap(np.linspace(0.15, 0.85, 256))
 )
 
+# The colormap object can be passed directly to nilearn
+
 
 def plot_image_row(img, slice_dict, title):
     """Use nilearn to plot a row of slices from each image.
@@ -44,6 +46,11 @@ def plot_image_row(img, slice_dict, title):
     Highlights areas where masking is inconsistent (values between 0.1 and 0.9)
     by setting other values to NaN for transparency.
     """
+    # Debug: print data range and colormap info
+    img_data = img.get_fdata()
+    print(f"Data range for {title}: {img_data.min():.3f} to {img_data.max():.3f}")
+    print(f"Using colormap: {cmap.name}")
+    print(f"Colormap type: {type(cmap)}")
     # # Create masked image to highlight inconsistent areas
     # img_data = img.get_fdata()
     # masked_img_data = img_data.copy()
@@ -59,7 +66,7 @@ def plot_image_row(img, slice_dict, title):
     pngs = []
     for axis in ["x", "y", "z"]:
         for cut_coord in slice_dict[axis]:
-            plot_stat_map(
+            plot_img(
                 img,
                 bg_img=bg_image,  # Show brain anatomy in background
                 annotate=False,
@@ -67,13 +74,13 @@ def plot_image_row(img, slice_dict, title):
                 cut_coords=[cut_coord],
                 colorbar=False,
                 title=None,
-                vmin=vmin,
+                threshold=vmin,
                 vmax=vmax,
                 draw_cross=False,
                 black_bg=False,
                 resampling_interpolation="nearest",
                 cmap=cmap,  # Cropped twilight colormap
-                transparency=0.8,
+                alpha=0.8,
                 output_file=f"{title}_{axis}_{cut_coord}.png",
             )
             pngs.append(imageio.imread(f"{title}_{axis}_{cut_coord}.png"))
@@ -82,7 +89,7 @@ def plot_image_row(img, slice_dict, title):
     #combined_image = np.hstack(pngs)
     #imageio.imwrite(f"{title}_coverage.png", combined_image)
 
-    plot_stat_map(
+    plot_img(
         img,
         bg_img=bg_image,
         display_mode="z",
@@ -96,12 +103,12 @@ def plot_image_row(img, slice_dict, title):
         vmin=vmin,
         vmax=vmax,
         cmap=cmap,
-        transparency=0.8,
+        alpha=0.8,
     )
 
 
-#plot_image_row(sesv02_coverage, slices, "ses-V02")
-#plot_image_row(sesv03_coverage, slices, "ses-V03")
-#plot_image_row(sesv02_thr006_coverage, slices, "ses-V02_thr0.06")
+plot_image_row(sesv02_coverage, slices, "ses-V02")
+plot_image_row(sesv03_coverage, slices, "ses-V03")
+plot_image_row(sesv02_thr006_coverage, slices, "ses-V02_thr0.06")
 plot_image_row(sesv02_thr01_coverage, slices, "ses-V02_thr0.1")
 plot_image_row(sesv02_thr012_coverage, slices, "ses-V02_thr0.12")

@@ -230,8 +230,26 @@ I needed to do some work in Inkscape to get the colorbars and text to look good.
 ### 5. Evaluating SynthSeg performance
 
 I made a script that gathers the brain masks from all subjects over a certain dice score.
-This script is `processing_code/synthstrip_eval/threshold_masks.py`.
+To run this whole thing you can
 
+```bash
+cd processing_code/synthstrip_eval
+bash group_coverage.sh
+```
+
+This will produce 
+ * ses-V02_coverage.nii.gz
+ * ses-V02_thr0.06_coverage.nii.gz
+ * ses-V02_thr0.1_coverage.nii.gz
+ * ses-V02_nothresh_coverage.nii.gz
+ * ses-V02_thr0.12_coverage.nii.gz
+ * ses-V03_coverage.nii.gz
+
+Download these to `figure_code` and run
+
+```bash
+python si_figure_2.py
+```
 
 
 Results from sensitivity analyses are visualized using this Rmd file: [/manuscript/results/supp_figures.Rmd](https://github.com/PennLINC/network_replication/blob/main/results/supp_figures.Rmd). The knitted Rmd file displaying supplementary figures can be downloaded at [/manuscript/results/supp_figures.html](https://github.com/PennLINC/network_replication/blob/main/results/supp_figures.html) and viewed on your browswer.
