@@ -18,5 +18,5 @@ print(f"found {all_qc.shape[0]} qc files")
 metadata = pd.read_csv("hbcd1_1.0.0RC1_scanning_info.csv")
 qc_complete = pd.merge(all_qc, metadata)
 print(f"after merging with {metadata.shape[0]} metadata rows, {qc_complete.shape[0]} remain")
-qc_complete.to_csv("hbcd1_1.0.0RC01scanner_qc.csv", index=False)
+qc_complete.to_csv("hbcd_1.0.0RC0_scanner_qc.csv", index=False)
 
