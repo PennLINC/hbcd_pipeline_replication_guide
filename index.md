@@ -66,6 +66,14 @@ The QSIRecon outputs are located directly in the `midb-hbcd-prerelease-bids` dir
 They are named `qsirecon-DIPYDKI`, `qsirecon-DSIStudio`, `qsirecon-TORTOISE_model-tensor`,
 `qsirecon-TORTOISE_model-MAPMRI`.
 
+The tabular data used for creating figures comes from looping over Erik's results.
+To gather the scanner metadata I ran `processing_code/gather_stats/compile_metadata.py`.
+Next I ran `processing_code/gather_stats/compile_group_qc_csv.py`,
+which combines the metadata with the automated QC measures from QSIPrep.
+Critically, this one produces the `hbcd1_1.0.0RC01scanner_qc.csv` that serves as the basis for most of the rest of these scripts.
+The QSIRecon outputs got concatenated using `processing_code/gather_stats/make_tabular_derivatives.py`,
+producing the parquet files used for the bundle figures.
+
 ### 1.Running TOPUP-only QSIPrep on CUBIC  
 For DRBUDDI benchmarking we needed to rerun QSIPrep on the same data as Erik with just TOPUP instead of TOPUP+DRBUDDI.
 The scripts for this are in `processing_code/processing`.
@@ -127,13 +135,11 @@ Finally, with the diffs all warped to NLin6, we get the group averages and plot 
 The averages are created with 
 
 ```bash
-3dmerge -gmean \
-    -1fmask means/nlin6_1.7mm_mask.nii.gz \
-    -prefix means/${method}_${sesid}_masked_${metric}.nii \
-    ${method}_sub-*_${sesid}*APPAdiff*${metric}.nii
+bash calc_means.sh
 ```
 
-The plotting happens in `figure_code/figure_5.py`.
+This will produce a couple nifti files in `$REPRO_DIR/appa_diffs_mni/means` that you need to copy into `figure_code`.
+Then you can plot the slices used in Figure 5 with `python figure_5.py`.
 
 
 ### 3. Preparing QSIRecon parametric microstructure maps for ModelArray 

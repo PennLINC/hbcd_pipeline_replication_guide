@@ -1,20 +1,21 @@
 #!/usr/bin/env python
 import os
-from nilearn.plotting import plot_stat_map
+from nilearn.plotting import plot_img
 import nilearn.image as nim
 import numpy as np
 from pathlib import Path
 import imageio.v2 as imageio
 from scipy.ndimage import binary_erosion
 
+
 cmap = 'plasma'
 vmax = 0.22
 vmin = 0.00
 
 # Replace with the path where you downloaded the error mean images
-image_dir = Path("/Users/mcieslak/projects/hbcd/sdc_error_means/means/")
-mask_image = nim.load_img(image_dir / "nlin6_1.7mm_mask.nii.gz")
-bg_image = nim.load_img(image_dir / "nlin6_crop.nii.gz")
+image_dir = Path.cwd() / "means"
+mask_image = nim.load_img("../templates/nlin6_1.7mm_mask.nii.gz")
+bg_image = nim.load_img("../templates/nlin6_crop.nii.gz")
 
 # Erode mask_image by 1 voxel
 mask_data = mask_image.get_fdata()
@@ -32,10 +33,10 @@ slices = [
 ]
 
 image_files = [
-    nim.math_img("img * mask_img", img=image_dir / "drbuddi_ses-V02_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "nodrbuddi_ses-V02_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "drbuddi_ses-V03_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "nodrbuddi_ses-V03_FA.nii", mask_img=eroded_mask_image),
+    nim.math_img("img * mask_img", img=image_dir / "drbuddi_ses-V02_masked_FA.nii", mask_img=eroded_mask_image),
+    nim.math_img("img * mask_img", img=image_dir / "nodrbuddi_ses-V02_masked_FA.nii", mask_img=eroded_mask_image),
+    nim.math_img("img * mask_img", img=image_dir / "drbuddi_ses-V03_masked_FA.nii", mask_img=eroded_mask_image),
+    nim.math_img("img * mask_img", img=image_dir / "nodrbuddi_ses-V03_masked_FA.nii", mask_img=eroded_mask_image),
 ]
 
 def plot_image_row(images, slice_dict, title):
@@ -66,7 +67,7 @@ def plot_image_row(images, slice_dict, title):
 
         # First plot the background (MNI template)
         temp_file = f"{title}_{i}.png"
-        plot_stat_map(
+        plot_img(
             img,
             bg_img=eroded_mask_image,
             display_mode=display_mode,
@@ -79,7 +80,6 @@ def plot_image_row(images, slice_dict, title):
             black_bg=False,
             resampling_interpolation="nearest",
             annotate=False,
-            symmetric_cbar=False,
             cmap=cmap,
             output_file=temp_file,
         )
@@ -91,7 +91,7 @@ def plot_image_row(images, slice_dict, title):
     combined_image = np.hstack([combined_sesv02, combined_sesv03])
     imageio.imwrite(f"{title}.png", combined_image)
 
-    plot_stat_map(
+    plot_img(
         img,
         bg_img=eroded_mask_image,
         display_mode="z",
