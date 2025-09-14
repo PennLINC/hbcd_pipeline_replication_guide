@@ -10,7 +10,7 @@ from scipy.ndimage import binary_erosion
 
 cmap = 'plasma'
 vmax = 0.22
-vmin = 0.00
+vmin = 0.00001
 
 # Replace with the path where you downloaded the error mean images
 image_dir = Path.cwd() / "means"
@@ -76,6 +76,7 @@ def plot_image_row(images, slice_dict, title):
             title=None,
             vmin=vmin,
             vmax=vmax,
+            threshold=vmin,
             draw_cross=False,
             black_bg=False,
             resampling_interpolation="nearest",
