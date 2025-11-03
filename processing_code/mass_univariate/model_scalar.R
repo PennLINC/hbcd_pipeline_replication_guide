@@ -21,7 +21,7 @@ phenotypes <- read.csv(ma_cohort, header=TRUE)
 phenotypes$Manufacturer <- factor(
     phenotypes$Manufacturer,
     levels=c("Siemens", "GE", "Philips"))
-model_str <- " ~ Manufacturer + gestational_age + raw_neighbor_corr"
+model_str <- " ~ Manufacturer + scans_gestational_age + raw_neighbor_corr"
 formula_lm <- as.formula(paste0(scalar_name, model_str))
 
 ma_lm <- ModelArray.lm(formula_lm, ma, phenotypes, scalar_name, n_cores=n_cpus)

@@ -36,12 +36,7 @@ slices = [
     },
 ]
 
-image_files = [
-    nim.math_img("img * mask_img", img=image_dir / "drbuddi_ses-V02_masked_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "nodrbuddi_ses-V02_masked_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "drbuddi_ses-V03_masked_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "nodrbuddi_ses-V03_masked_FA.nii", mask_img=eroded_mask_image),
-]
+
 
 def plot_image_row(images, slice_dict, title):
     """Use nilearn to plot a row of slices from each image.
@@ -112,10 +107,18 @@ def plot_image_row(images, slice_dict, title):
         cmap=cmap,
     )
 
+for dice_max in [0.06, 1.0]:
 
-# Create plots for each slice configuration
-for slice_config in slices:
-    plot_image_row(image_files, slice_config["slice"], slice_config["title"])
+    image_files = [
+        nim.math_img("img * mask_img", img=image_dir / f"drbuddi_ses-V02_masked_FA_dice-max{dice_max}.nii", mask_img=eroded_mask_image),
+        nim.math_img("img * mask_img", img=image_dir / f"nodrbuddi_ses-V02_masked_FA_dice-max{dice_max}.nii", mask_img=eroded_mask_image),
+        nim.math_img("img * mask_img", img=image_dir / f"drbuddi_ses-V03_masked_FA_dice-max{dice_max}.nii", mask_img=eroded_mask_image),
+        nim.math_img("img * mask_img", img=image_dir / f"nodrbuddi_ses-V03_masked_FA_dice-max{dice_max}.nii", mask_img=eroded_mask_image),
+    ]
+
+    # Create plots for each slice configuration
+    for slice_config in slices:
+        plot_image_row(image_files, slice_config["slice"], slice_config["title"] + f"_dice-max{dice_max}")
 
 
 
