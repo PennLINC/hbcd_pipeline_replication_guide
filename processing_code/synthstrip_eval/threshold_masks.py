@@ -42,6 +42,7 @@ def main():
 
     cmd = ["3dmerge", '-gmean', '-prefix', output_file, *[str(mask_path) for mask_path in images_to_average]]
     proc = subprocess.run(cmd, check=True)
+    print(f"created {output_file} with {len(images_to_average)} images")
 
 if __name__ == "__main__":
     main()

@@ -5,24 +5,82 @@ import nibabel as nib
 import pandas as pd
 import argparse
 import numpy as np
+import subprocess
+import os
+import re
+from typing import Optional
+from tqdm import tqdm
+import shutil
+from concurrent.futures import ProcessPoolExecutor
+
+
+def _extract_run_number(filename: str) -> int:
+    match = re.search(r"_run-(\d+)_", filename)
+    if match:
+        return int(match.group(1))
+    return 10**9
+
+
+def _find_with_optional_run(dwi_dir: Path, sub_id: str, ses_id: str, middle: str, ext: str) -> Path:
+    base_path = dwi_dir / f"{sub_id}_{ses_id}_{middle}{ext}"
+
+    candidates = []
+    # Prefer files that include run- information, regardless of other entities
+    candidates.extend(dwi_dir.glob(f"{sub_id}_{ses_id}_*run-*_*{middle}{ext}"))
+    # Then any file with additional entities between ses and middle
+    candidates.extend(dwi_dir.glob(f"{sub_id}_{ses_id}_*{middle}{ext}"))
+    # Finally, consider the exact base path if it exists
+    if base_path.exists():
+        candidates.append(base_path)
+
+    # Deduplicate while preserving order
+    seen = set()
+    unique_candidates = []
+    for p in candidates:
+        if p not in seen:
+            unique_candidates.append(p)
+            seen.add(p)
+
+    if unique_candidates:
+        candidates_sorted = sorted(unique_candidates, key=lambda p: (_extract_run_number(p.name), p.name))
+        return candidates_sorted[0]
+
+    # Return the canonical non-run path for downstream .exists() checks
+    return base_path
 
 
 def files_from_qsiprep(qsiprep_dir, sub_id, ses_id):
     """
-    Get the files from qsiprep output.
+    Get the primary qsiprep DWI, gradients, and confounds, allowing flexible run-* patterns.
     """
+    dwi_dir = qsiprep_dir / sub_id / ses_id / "dwi"
     files = {}
-    files["dwi"] = qsiprep_dir / sub_id / ses_id / "dwi" / f"{sub_id}_{ses_id}_space-ACPC_desc-preproc_dwi.nii.gz"
-    if not files["dwi"].exists():
-        files["dwi"] = qsiprep_dir / sub_id / ses_id / "dwi" / f"{sub_id}_{ses_id}_run-1_space-ACPC_desc-preproc_dwi.nii.gz"
-    files["bmtxt"] = qsiprep_dir / sub_id / ses_id / "dwi" / f"{sub_id}_{ses_id}_space-ACPC_desc-preproc_dwi.bmtxt"
-    if not files["bmtxt"].exists():
-        files["bmtxt"] = qsiprep_dir / sub_id / ses_id / "dwi" / f"{sub_id}_{ses_id}_run-1_space-ACPC_desc-preproc_dwi.bmtxt"
-    files["confounds"] = qsiprep_dir / sub_id / ses_id / "dwi" / f"{sub_id}_{ses_id}_desc-confounds_timeseries.tsv"
-    if not files["confounds"].exists():
-        files["confounds"] = qsiprep_dir / sub_id / ses_id / "dwi" / f"{sub_id}_{ses_id}_run-1_desc-confounds_timeseries.tsv"
-
+    files["dwi"] = _find_with_optional_run(dwi_dir, sub_id, ses_id, "space-ACPC_desc-preproc_dwi", ".nii.gz")
+    files["bmtxt"] = _find_with_optional_run(dwi_dir, sub_id, ses_id, "space-ACPC_desc-preproc_dwi", ".bmtxt")
+    files["bvals"] = _find_with_optional_run(dwi_dir, sub_id, ses_id, "space-ACPC_desc-preproc_dwi", ".bval")
+    files["bvecs"] = _find_with_optional_run(dwi_dir, sub_id, ses_id, "space-ACPC_desc-preproc_dwi", ".bvec")
+    files["confounds"] = _find_confounds_tsv(dwi_dir, sub_id, ses_id, files["dwi"])
     return files
+
+
+def _find_confounds_tsv(dwi_dir: Path, sub_id: str, ses_id: str, dwi_path: Path) -> Path:
+    desired_run = _extract_run_number(dwi_path.name)
+
+    # Try exact run match first if one was detected from the DWI
+    if desired_run != 10**9:
+        exact = list(dwi_dir.glob(f"{sub_id}_{ses_id}_*run-{desired_run}_*desc-confounds_timeseries.tsv"))
+        if exact:
+            return sorted(exact, key=lambda p: p.name)[0]
+
+    # Otherwise, try any confounds file for this subject/session
+    candidates = list(dwi_dir.glob(f"{sub_id}_{ses_id}_*desc-confounds_timeseries.tsv"))
+    if candidates:
+        # Prefer those with a run number, choosing the lowest run index
+        candidates_sorted = sorted(candidates, key=lambda p: (_extract_run_number(p.name), p.name))
+        return candidates_sorted[0]
+
+    # Fallback: canonical non-run name (may not exist; caller may .exists())
+    return dwi_dir / f"{sub_id}_{ses_id}_desc-confounds_timeseries.tsv"
 
 
 def force_float32(nifti):
@@ -38,10 +96,75 @@ def force_float32(nifti):
     return f32_nifti
 
 
+def generate_bmtxt_with_apptainer(bvals_path: Path, bvecs_path: Path, output_bmtxt_path: Optional[Path] = None) -> str:
+    """
+    Generate a TORTOISE .bmtxt by invoking FSLBVecsToTORTOISEBmatrix inside the
+    qsirecon Apptainer image located at $HOME/images/qsirecon-1.0.0.sif.
+
+    Parameters
+    ----------
+    bvals_path : Path
+        Path to the input .bvals file.
+    bvecs_path : Path
+        Path to the input .bvecs file.
+    output_bmtxt_path : Path
+        Destination path to write the generated .bmtxt (stdout) to.
+    """
+    home_dir = os.environ.get("HOME", str(Path.home()))
+    sif_image = Path(home_dir) / "images" / "qsirecon-1.0.0.sif"
+
+    cmd = [
+        "apptainer",
+        "exec",
+        "-B",
+        str(bvals_path.parent),
+        "-B",
+        str(bvecs_path.parent),
+        "-B",
+        str(Path.cwd()),
+        str(sif_image),
+        "FSLBVecsToTORTOISEBmatrix",
+        str(bvals_path),
+        str(bvecs_path),
+    ]
+
+    # Run the command; the tool writes the .bmtxt next to the .bval file
+    result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"Failed to generate .bmtxt with error: {result.stderr}")
+
+    # Determine the produced bmtxt path (same stem, replacing .bval -> .bmtxt)
+    bvals_str = str(bvals_path)
+    if bvals_str.endswith('.bval'):
+        produced_path = Path(bvals_str[:-5] + '.bmtxt')
+    else:
+        produced_path = bvals_path.with_suffix('.bmtxt')
+
+    if not produced_path.exists():
+        raise FileNotFoundError(f"Expected bmtxt not found after generation: {produced_path}")
+
+    # Copy to requested destination if provided
+    if output_bmtxt_path is not None:
+        output_bmtxt_path.parent.mkdir(parents=True, exist_ok=True)
+        if produced_path.resolve() != output_bmtxt_path.resolve():
+            shutil.copyfile(produced_path, output_bmtxt_path)
+        return output_bmtxt_path.read_text()
+
+    return produced_path.read_text()
+
+
+
 def split_peds(input_dir, output_dir, sub_id, ses_id):
     """Takes output from qsiprep where AP and PA have been merged
     and splits them into AP and PA niftis. """
     files = files_from_qsiprep(input_dir, sub_id, ses_id)
+    new_ap_nifti_path = output_dir / f"{sub_id}_{ses_id}_space-ACPC_desc-preproc_dir-AP_dwi.nii"
+    new_pa_nifti_path = output_dir / f"{sub_id}_{ses_id}_space-ACPC_desc-preproc_dir-PA_dwi.nii"
+
+    if new_ap_nifti_path.exists() and new_pa_nifti_path.exists():
+        print(f"Skipping {sub_id}_{ses_id} because it already exists")
+        return
+
     confounds_df = pd.read_csv(files["confounds"], sep="\t")
     
     # Get row numbers where original_file has "dir-AP" in its value as a numpy array
@@ -57,35 +180,50 @@ def split_peds(input_dir, output_dir, sub_id, ses_id):
     new_ap_nifti.to_filename(output_dir / f"{sub_id}_{ses_id}_space-ACPC_desc-preproc_dir-AP_dwi.nii")
     new_pa_nifti.to_filename(output_dir / f"{sub_id}_{ses_id}_space-ACPC_desc-preproc_dir-PA_dwi.nii")
 
-    # Split the bmtxt file
-    bm = np.loadtxt(files["bmtxt"])
+    # Split the bmtxt file (generate if missing or empty)
+    if files["bmtxt"].exists() and files["bmtxt"].stat().st_size > 0:
+        bm = np.loadtxt(files["bmtxt"])
+    else:
+        combined_bmtxt_path = output_dir / f"{sub_id}_{ses_id}_space-ACPC_desc-preproc_dwi.bmtxt"
+        _ = generate_bmtxt_with_apptainer(files["bvals"], files["bvecs"], combined_bmtxt_path)
+        bm = np.loadtxt(combined_bmtxt_path)
+
     ap_bm = bm[ap_rows]
     pa_bm = bm[pa_rows]
     np.savetxt(output_dir / f"{sub_id}_{ses_id}_space-ACPC_desc-preproc_dir-AP_dwi.bmtxt", ap_bm, fmt='%.6g', delimiter=' ')
     np.savetxt(output_dir / f"{sub_id}_{ses_id}_space-ACPC_desc-preproc_dir-PA_dwi.bmtxt", pa_bm, fmt='%.6g', delimiter=' ')
 
 
-def parse_subjects_sessions(subjects_sessions_file):
+def find_subject_sessions(input_dir):
     """
-    Parse the subjects_sessions_file and return a list of tuples of (sub_id, ses_id).
+    Find the subject and session IDs in the input directory.
     """
-    
-    with open(subjects_sessions_file, "r") as f:
-        return [line.strip().split("_")[:2] for line in f.readlines()]
+    return [(sub_id.name, ses_id.name) for sub_id in input_dir.glob("sub-*") for ses_id in sub_id.glob("ses-*")]
+
+
+def _split_wrapper(task):
+    input_dir, output_dir, sub_id, ses_id = task
+    try:
+        split_peds(input_dir, output_dir, sub_id, ses_id)
+        return (sub_id, ses_id, None)
+    except Exception as e:
+        return (sub_id, ses_id, str(e))
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_dir", type=Path, help="Path to the input directory")
     parser.add_argument("output_dir", type=Path, help="Path to the output directory")
-    parser.add_argument("subjects_sessions_file", type=Path, help="Path to the subjects_sessions_file")
+    parser.add_argument("--workers", type=int, default=8, help="Number of parallel workers")
     args = parser.parse_args()
 
-    subjects_sessions = parse_subjects_sessions(args.subjects_sessions_file)
+    subjects_sessions = find_subject_sessions(args.input_dir)
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    for sub_id, ses_id in subjects_sessions:
-        split_peds(args.input_dir, args.output_dir, sub_id, ses_id)
-
+    tasks = [(args.input_dir, args.output_dir, sub_id, ses_id) for sub_id, ses_id in subjects_sessions]
+    with ProcessPoolExecutor(max_workers=args.workers) as executor:
+        for sub_id, ses_id, err in tqdm(executor.map(_split_wrapper, tasks), total=len(tasks), desc="Splitting PEDs"):
+            if err:
+                print(f"Error splitting {sub_id}_{ses_id}: {err}")
 if __name__ == "__main__":
     main()
 
