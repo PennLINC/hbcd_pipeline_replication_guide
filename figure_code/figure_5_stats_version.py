@@ -26,6 +26,18 @@ mask_data = mask_image.get_fdata()
 eroded_mask_data = binary_erosion(mask_data, iterations=1)
 eroded_mask_image = nim.new_img_like(mask_image, eroded_mask_data.astype(np.float32))
 
+modelarray_dir = Path.cwd() / "../rep1/modelarray"
+ses_v02_pval_image = nim.load_img(
+    modelarray_dir / 
+    "appa_fa_diff_appa_exploration_ses-V02" / 
+    "appa_exploration_t_pvalue.nii.gz"
+)
+ses_v03_pval_image = nim.load_img(
+    modelarray_dir / 
+    "appa_fa_diff_appa_exploration_ses-V03" / 
+    "appa_exploration_t_pvalue.nii.gz"
+)
+
 
 slices = [
     {"title": "Cerebellar Peduncles", 
@@ -36,11 +48,29 @@ slices = [
     },
 ]
 
+
+mask_formula = "img * mask_img * (pval_img < 0.05)"
 image_files = [
-    nim.math_img("img * mask_img", img=image_dir / "drbuddi_ses-V02_masked_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "nodrbuddi_ses-V02_masked_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "drbuddi_ses-V03_masked_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "nodrbuddi_ses-V03_masked_FA.nii", mask_img=eroded_mask_image),
+    nim.math_img(
+        mask_formula, 
+        pval_img=ses_v02_pval_image,
+        img=image_dir / "drbuddi_ses-V02_masked_FA.nii", 
+        mask_img=eroded_mask_image),
+    nim.math_img(
+        mask_formula, 
+        pval_img=ses_v02_pval_image,
+        img=image_dir / "nodrbuddi_ses-V02_masked_FA.nii", 
+        mask_img=eroded_mask_image),
+    nim.math_img(
+        mask_formula, 
+        pval_img=ses_v03_pval_image,
+        img=image_dir / "drbuddi_ses-V03_masked_FA.nii", 
+        mask_img=eroded_mask_image),
+    nim.math_img(
+        mask_formula, 
+        pval_img=ses_v03_pval_image,
+        img=image_dir / "nodrbuddi_ses-V03_masked_FA.nii", 
+        mask_img=eroded_mask_image),
 ]
 
 def plot_image_row(images, slice_dict, title):
@@ -73,7 +103,7 @@ def plot_image_row(images, slice_dict, title):
         temp_file = f"{title}_{i}.png"
         plot_img(
             img,
-            bg_img=eroded_mask_image,
+            bg_img=bg_image,
             display_mode=display_mode,
             cut_coords=cut_coords,
             colorbar=False,

@@ -18,14 +18,12 @@ do
 mkdir -p "${OUTDIR}/drbuddi/${sesid}"
 python split_peds.py \
     "$HOME"/tier2_local/midb-hbcd-prerelease-bids/derivatives/${sesid}/qsiprep \
-    "${OUTDIR}/drbuddi/${sesid}" \
-    "$HOME"/pipeline_paper/separate_fa/code/drbuddi_${sesid}.txt
+    "${OUTDIR}/drbuddi/${sesid}"
 
 # No DRBUDDI
 mkdir -p "${OUTDIR}/nodrbuddi/${sesid}"
 python split_peds.py \
     "$HOME"/pipeline_paper/penn-run/derivatives/no-drbuddi/qsiprep \
-    "${OUTDIR}/nodrbuddi/${sesid}" \
-    "$HOME"/pipeline_paper/separate_fa/code/nodrbuddi_${sesid}.txt
+    "${OUTDIR}/nodrbuddi/${sesid}"
 done
 

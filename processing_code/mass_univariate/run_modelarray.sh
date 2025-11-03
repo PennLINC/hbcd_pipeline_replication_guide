@@ -5,10 +5,14 @@
 #SBATCH --mem=18G
 #SBATCH --time=4:00:00
 #SBATCH --output=hbcd-ma-lm-%A_%a.log
-#SBATCH --array=0-2
+#SBATCH --array=0-5
 
 # CHANGE THIS!!
 REPRO_DIR="${HOME}/rep1"
+dicemax=0.06
+if [ ${SLURM_ARRAY_TASK_ID} -ge 3 ]; then
+    dicemax=1.0
+fi
 
 SIMG="${HOME}"/images/confixel-0.1.5.sif
 MA_INPUT_DIR="${REPRO_DIR}/volumetric/modelarray"
@@ -19,13 +23,15 @@ GROUP_MASK="${HOME}"/pipeline_paper/volumetric/templates/nlin6_1.7mm_mask.nii.gz
 set -e -u -x
 
 # There are 31 scalars: only do 3 for the paper
+# The scalar index is the array id mod 3
+SCALAR_INDEX=$((SLURM_ARRAY_TASK_ID % 3))
 SCALARS=(dsistudiotensor_fa dsistudiotensor_md mapmri_rtop)
-SCALAR_NAME="${SCALARS[$SLURM_ARRAY_TASK_ID]}"
-h5_origin=${MA_INPUT_DIR}/${SCALAR_NAME}.h5
-csv_origin=${MA_INPUT_DIR}/${SCALAR_NAME}.csv
+SCALAR_NAME="${SCALARS[$SCALAR_INDEX]}"
+h5_origin=${MA_INPUT_DIR}/${SCALAR_NAME}_dice-max${dicemax}.h5
+csv_origin=${MA_INPUT_DIR}/${SCALAR_NAME}_dice-max${dicemax}.csv
 
 # Use $TMP as the workdir
-WORKDIR=${TMP}/"job-${SLURM_JOB_ID}_${SCALAR_NAME}"
+WORKDIR=${TMP}/"job-${SLURM_JOB_ID}_${SCALAR_NAME}_dice-max${dicemax}"
 mkdir -p "${WORKDIR}"
 cd ${WORKDIR}
 
@@ -43,7 +49,7 @@ singularity exec -B ${HOME} -B ${PWD} \
 	${SLURM_JOB_CPUS_PER_NODE}
 
 # Convert the stats back to nifti
-output_dir=${PWD}/${SCALAR_NAME}_lm0
+output_dir=${PWD}/${SCALAR_NAME}_dice-max${dicemax}_lm0
 singularity exec -B ${HOME} -B ${PWD}  \
     ${SIMG} \
     volumestats_write \
