@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPRO_DIR="${HOME}/rep1"
+REPRO_DIR="${HOME}/rep2"
 
 SIF=${HOME}/images/confixel-0.1.5.sif
 GROUP_MASK=${HOME}/pipeline_paper/volumetric/templates/nlin6_1.7mm_mask.nii.gz

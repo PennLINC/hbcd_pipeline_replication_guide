@@ -22,7 +22,7 @@ def main() -> None:
     home = Path.home()
 
     # Base repro directory and outputs
-    repro_dir = home / "rep1"
+    repro_dir = home / "rep2"
     appa_diffs_dir = repro_dir / "separate_fa" / "appa_diffs_mni"
     modelarray_dir = repro_dir / "volumetric" / "modelarray"
     modelarray_dir.mkdir(parents=True, exist_ok=True)
@@ -31,7 +31,7 @@ def main() -> None:
     group_mask = home / "pipeline_paper" / "volumetric" / "templates" / "nlin6_1.7mm_mask.nii.gz"
 
     # Metadata table
-    metadata_csv_path = home / "tier2_local" / "code" / "hbcd_1.0.0RC0_scanner_qc.csv"
+    metadata_csv_path = home / "tier2_local" / "code" / "hbcd_complete_qc_demographics.csv"
     metadata_df = pd.read_csv(metadata_csv_path)
     metadata_columns = [
         "DeviceSerialNumber",

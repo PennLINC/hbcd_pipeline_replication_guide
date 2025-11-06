@@ -9,7 +9,7 @@
 # Split the drbuddi outputs
 conda activate hbcd
 
-OUTDIR="${HOME}/rep1/separate_fa"
+OUTDIR="${HOME}/rep2/separate_fa"
 
 for sesid in ses-V02 ses-V03
 do
@@ -23,7 +23,7 @@ python split_peds.py \
 # No DRBUDDI
 mkdir -p "${OUTDIR}/nodrbuddi/${sesid}"
 python split_peds.py \
-    "$HOME"/pipeline_paper/penn-run/derivatives/no-drbuddi/qsiprep \
+    "$HOME"/pipeline_paper/penn-run/derivatives/no-drbuddi-1.0.0/qsiprep \
     "${OUTDIR}/nodrbuddi/${sesid}"
 done
 

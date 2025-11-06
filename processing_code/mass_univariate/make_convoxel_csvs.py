@@ -5,7 +5,7 @@ from pathlib import Path
 home = Path.home()
 
 # CHANGE THIS!!
-repro_dir = home / "rep1"
+repro_dir = home / "rep2"
 
 metadata_csv_path = home / "tier2_local" / "code" / "hbcd_complete_qc_demographics.csv"
 metadata_df = pd.read_csv(metadata_csv_path)

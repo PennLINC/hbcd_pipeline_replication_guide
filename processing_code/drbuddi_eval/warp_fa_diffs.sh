@@ -7,7 +7,7 @@
 #SBATCH --output=warp_fas.log
 
 # CHANGE THIS!!
-REPRO_DIR="${HOME}/rep1"
+REPRO_DIR="${HOME}/rep2"
 
 SIMG="${HOME}"/images/qsirecon-1.0.1RC0.sif
 REFVOL=${HOME}/pipeline_paper/volumetric/templates/nlin6_1.7mm.nii.gz
@@ -24,7 +24,7 @@ do
 
     subid=$(basename ${fname} | sed 's/^\(sub-[A-Za-z0-9]*\).*$/\1/')
     sesid=$(basename ${fname} | sed 's/^.*\(ses-[A-Za-z0-9]*\).*$/\1/')
-    QSIPREP_DIR=${HOME}/pipeline_paper/penn-run/derivatives/no-drbuddi/qsiprep/${subid}/${sesid}
+    QSIPREP_DIR=${HOME}/pipeline_paper/penn-run/derivatives/no-drbuddi-1.0.0/qsiprep/${subid}/${sesid}
 
     WARP_FILE=$(find "${QSIPREP_DIR}" -name '*from-ACPC_to-MNI*xfm.h5')
     COHORT=$(echo "${WARP_FILE}" | sed 's/.*MNIInfant+\([0-9][0-9]*\)_.*/\1/')

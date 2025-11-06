@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 # CHANGE THIS!!
-REPRO_DIR="${HOME}/rep1"
+REPRO_DIR="${HOME}/rep2"
 
 cd ${REPRO_DIR}/separate_fa/appa_diffs_mni
 mkdir means

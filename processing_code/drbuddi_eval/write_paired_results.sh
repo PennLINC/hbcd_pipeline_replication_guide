@@ -1,5 +1,5 @@
 #!/bin/bash
-REPRO_DIR="${HOME}/projects/hbcd/hbcd_pipeline_replication_guide/rep1"
+REPRO_DIR="${HOME}/projects/hbcd/hbcd_pipeline_replication_guide/rep2"
 GROUP_MASK="${HOME}/projects/hbcd/hbcd_pipeline_replication_guide/templates/nlin6_1.7mm_mask.nii.gz"
 SCALAR_NAME="appa_fa_diff"
 for session in ses-V02 ses-V03; do

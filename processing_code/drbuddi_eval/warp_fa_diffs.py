@@ -114,9 +114,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--simg", type=Path, default=home / "images" / "qsirecon-1.0.1RC0.sif", help="Path to Singularity image")
     parser.add_argument("--refvol", type=Path, default=home / "pipeline_paper" / "volumetric" / "templates" / "nlin6_1.7mm.nii.gz", help="Reference volume")
-    parser.add_argument("--input-base", type=Path, default=home / "rep1" / "separate_fa", help="Base directory containing nodrbuddi/ and drbuddi/")
+    parser.add_argument("--input-base", type=Path, default=home / "rep2" / "separate_fa", help="Base directory containing nodrbuddi/ and drbuddi/")
     parser.add_argument("--output-dir", type=Path, help="Output directory; defaults to <input-base>/appa_diffs_mni")
-    parser.add_argument("--qsiprep-nodrbuddi-root", type=Path, default=home / "pipeline_paper" / "penn-run" / "derivatives" / "no-drbuddi" / "qsiprep", help="Root of qsiprep (nodrbuddi)")
+    parser.add_argument("--qsiprep-nodrbuddi-root", type=Path, default=home / "pipeline_paper" / "penn-run" / "derivatives" / "no-drbuddi-1.0.0" / "qsiprep", help="Root of qsiprep (nodrbuddi)")
     parser.add_argument(
         "--qsiprep-drbuddi-root-template",
         type=str,

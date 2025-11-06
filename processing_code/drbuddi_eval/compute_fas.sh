@@ -6,7 +6,7 @@
 #SBATCH --time=2-00:00:00
 #SBATCH --output=calc_fas.log
 
-REPRO_DIR="${HOME}/rep1"
+REPRO_DIR="${HOME}/rep2"
 base=${REPRO_DIR}/separate_fa
 APT_EXEC="apptainer exec -B $base $HOME/images/qsirecon-1.0.0.sif"
 cd $base

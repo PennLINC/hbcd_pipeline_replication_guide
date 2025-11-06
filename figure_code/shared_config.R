@@ -67,7 +67,7 @@ save_svg_double_col <- function(filename, width = 7, height = 3.5) {
 
 # Additional utility functions can be added here as needed
 
-demos <- read.csv("hbcd_1.0.0RC0_scanner_qc.csv")
+demos <- read.csv("hbcd_complete_qc_demographics.csv")
 
 print(paste(
   "Number of rows with NA in gestational_age:",

@@ -2,7 +2,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 
 # CHANGE THIS!!
-repro_dir <- "/cbica/projects/hbcd_dev/rep1"
+repro_dir <- "/cbica/projects/hbcd_dev/rep2"
 
 # Check if enough arguments are provided
 if (length(args) < 4) {

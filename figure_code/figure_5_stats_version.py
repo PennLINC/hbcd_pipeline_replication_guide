@@ -26,7 +26,7 @@ mask_data = mask_image.get_fdata()
 eroded_mask_data = binary_erosion(mask_data, iterations=1)
 eroded_mask_image = nim.new_img_like(mask_image, eroded_mask_data.astype(np.float32))
 
-modelarray_dir = Path.cwd() / "../rep1/modelarray"
+modelarray_dir = Path.cwd() / "../rep2/modelarray"
 ses_v02_pval_image = nim.load_img(
     modelarray_dir / 
     "appa_fa_diff_appa_exploration_ses-V02" / 

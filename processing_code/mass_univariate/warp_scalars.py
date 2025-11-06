@@ -22,7 +22,7 @@ def getenv_path(name: str, default: str) -> str:
 
 
 HOME = str(Path.home())
-REPRO_DIR = getenv_path("REPRO_DIR", f"{HOME}/rep1")
+REPRO_DIR = getenv_path("REPRO_DIR", f"{HOME}/rep2")
 SIMG = getenv_path("SIMG", f"{HOME}/images/qsirecon-1.0.1RC0.sif")
 RESULTS_CSV = getenv_path("RESULTS_CSV", f"{HOME}/tier2_local/code/hbcd_complete_qc_demographics.csv")
 

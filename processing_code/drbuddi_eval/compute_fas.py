@@ -85,7 +85,7 @@ def main() -> None:
     home = Path(os.environ.get("HOME", str(Path.home())))
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--base", type=Path, default=home / "rep1" / "separate_fa", help="Base directory containing *drbuddi subdirs")
+    parser.add_argument("--base", type=Path, default=home / "rep2" / "separate_fa", help="Base directory containing *drbuddi subdirs")
     parser.add_argument("--simg", type=Path, default=home / "images" / "qsirecon-1.0.0.sif", help="Apptainer image path")
     parser.add_argument("--bval", type=int, default=1250, help="b-value for EstimateTensor")
     parser.add_argument("--workers", type=int, default=os.cpu_count() or 1, help="Number of parallel workers")

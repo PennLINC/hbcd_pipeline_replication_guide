@@ -5,7 +5,7 @@ import subprocess
 home = Path.home()
 
 # CHANGE THIS!!
-REPRO_DIR = home / "rep1"
+REPRO_DIR = home / "rep2"
 
 dice_maxes = [0.06, 1.0]
 complete_qc_df = pd.read_csv(home / "tier2_local" / "code" / "hbcd_complete_qc_demographics.csv")

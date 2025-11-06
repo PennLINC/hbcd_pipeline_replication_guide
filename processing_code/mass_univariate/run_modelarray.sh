@@ -8,7 +8,7 @@
 #SBATCH --array=0-5
 
 # CHANGE THIS!!
-REPRO_DIR="${HOME}/rep1"
+REPRO_DIR="${HOME}/rep2"
 dicemax=0.06
 if [ ${SLURM_ARRAY_TASK_ID} -ge 3 ]; then
     dicemax=1.0
