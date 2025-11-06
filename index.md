@@ -73,6 +73,7 @@ To gather the scanner metadata I ran `processing_code/gather_stats/compile_metad
 ```bash
 cd processing_code/gather_stats
 python compile_metadata.py
+
 ```
 This will create `hbcd1_1.0.0RC1_scanning_info.csv`,
 which contains info for every single scan, including scans that won't be processed due to QC.
@@ -84,7 +85,18 @@ Next, we get the QC measures from Erik's QSIPrep run and merge them with the met
 python compile_group_qc_csv.py
 ```
 
-Critically, this one produces the `hbcd1_1.0.0RC01scanner_qc.csv` that serves as the basis for most of the rest of these scripts.
+Critically, this one produces the `hbcd1_1.0.0RC01scanner_qc.csv` which is what was used for the first round of coauthor comments.
+I later realized that we can get the ages from the `scans.tsv` files.
+To create the final demographics/inclusion file, run
+
+```bash
+python recheck_ages.py
+```
+
+to produce `hbcd_complete_qc_demographics.csv`.
+I verified on the HBCD slack that these ages are ok to use.
+This is now the definitive inclusion/demographics file to be used throughout.
+
 
 Finally, gather all the bundle measures with 
 
@@ -100,7 +112,7 @@ Which will produce
  * `group_DSIStudio_tdistats.parquet`
  * `group_DSIStudio_bundlestats.parquet`
 
-To make most of the figures, scp these parquet files and `hbcd1_1.0.0RC01scanner_qc.csv` into `figure_code/`.
+To make most of the figures, scp these parquet files and `hbcd_complete_qc_demographics.csv` into `figure_code/`.
 
 ### 1.Running TOPUP-only QSIPrep on CUBIC  
 For DRBUDDI benchmarking we needed to rerun QSIPrep on the same data as Erik with just TOPUP instead of TOPUP+DRBUDDI.
@@ -108,7 +120,7 @@ The scripts for this are in `processing_code/processing`.
 
 A critical gotcha here is that CBRAIN runs a file selection step based on some hidden files before running a job.
 This is beyond what is typically done with BIDS filter files, so we needed to mimic it on CUBIC.
-Note that the `preproc_run.sh` script includes
+Note that the `topup_only_1.0.sh` script includes
 
 ```bash
 # Copy only the files used by cbrain
@@ -121,8 +133,9 @@ python ${CODE_DIR}/cbrain_mimic.py \
 ```
 
 which uses the hidden `.cbrain` directory to determine which files to include from the original BIDS.
-Otherwise, the `preproc_run.sh` script is unremarkable.
-The TOPUP-only preprocessed data is in `/cbica/projects/hbcd_dev/pipeline_paper/penn-run/derivatives/no-drbuddi/qsiprep`.
+It also critically uses `eddy_params1p0.json`, which does _NOT_ include extra FWHMs like we thought.
+Future versions of HBCD will use extra FWHMs.
+The TOPUP-only preprocessed data is in `/cbica/projects/hbcd_dev/pipeline_paper/penn-run/derivatives/no-drbuddi1.0.0/qsiprep`.
 
 NOTE: This takes a lot of time and disk space and for these reasons it is not going to be re-run.
 
@@ -134,9 +147,10 @@ This happens in `processing_code/drbuddi_eval/run_split_peds.sh`.
 
 ```bash
 cd processing_code/drbuddi_eval
-sbatch run_split_peds.sh
+bash run_split_peds.sh
 ```
 
+This is parallelized and can run in ~40 minutes.
 After running this you'll have TORTOISE-compatible unzipped float32 niftis for just the AP and PA scans in `${REPRO_DIR}/separate_fa/nodrbuddi` and `${REPRO_DIR}/separate_fa/drbuddi`.
 
 Next we compute FA on the AP and PA scans again using TORTOISE.
@@ -144,10 +158,10 @@ The script for this is `processing_code/drbuddi_eval/compute_fas.sh`.
 Continuing from the session above:
 
 ```bash
-sbatch compute_fas.sh
+bash compute_fas.sh
 ```
 
-This will take awhile.
+This is also parallelized and will finish pretty quickly.
 The tensor is fit with `EstimateTensor` and the FA is computed with `ComputeFAMap`.
 At the end of the script, the subtraction of the AP and PA FA images is calculated with `3dcalc` from AFNI.
 
@@ -156,7 +170,7 @@ Instead of the MNIInfant templates, we will warp them all to NLin6.
 The code for this is in `processing_code/drbuddi_eval/warp_fa_diffs.sh`
 
 ```bash
-sbatch warp_fa_diffs.sh
+bash warp_fa_diffs.sh
 ```
 
 Finally, with the diffs all warped to NLin6, we get the group averages and plot them.
@@ -170,7 +184,26 @@ This will produce a couple nifti files in `$REPRO_DIR/appa_diffs_mni/means` that
 Then you can plot the slices used in Figure 5 with `python figure_5.py`.
 
 
-### 3. Preparing QSIRecon parametric microstructure maps for ModelArray 
+### 3. Running QSIPrep without MP-PCA and Gibbs unringing
+
+Just like we ran QSIPrep without DRBUDDI, 
+we also ran a version _with_ DRBUDDI but _without_ MP-PCA and Gibbs unringing.
+This script is in `processing_code/processing`
+
+```bash
+cd processing_code/processing
+sbatch nodenoise_1.0.sh
+```
+
+This will run the no denoising version.
+Note that this will take ~8 hours longer apiece than the topup-only run.
+Once the entire batch is finished you can collect the qc values with 
+
+```bash
+python processing_code/mppca_eval/compile_nodenoising_qc_csv.py
+```
+
+### 4. Preparing QSIRecon parametric microstructure maps for ModelArray 
 
 We need to warp both the masks and the scalar maps into NLin6.
 Both the masks and the scalar maps are warped in `processing_code/mass_univariate/warp_scalars.sh`.
@@ -178,10 +211,9 @@ Be sure to change `REPRO_DIR`.
 
 ```bash
 cd processing_code/mass_univariate
-sbatch warp_scalars.sh
+bash warp_scalars.sh
 ```
-Let this run overnight. 
-It also is not optimized.
+
 After warping, you'll need to make some csvs with the warped files.
 Edit `make_convoxel_csvs.py` so `repro_dir` points to your replication directory.
 
@@ -203,7 +235,7 @@ To fix it I deleted the empty nifti file and resubmitted `warp_scalars.sh`.
 Hopefully you won't run into this.
 
 
-### 4. Running ModelArray
+### 5. Running ModelArray
 
 Be sure to change `REPRO_DIR` in `run_modelarray.sh` and `repro_dir` in `model_scalar.R`.
 Then you can run the linear models with
@@ -229,9 +261,10 @@ I needed to do some work in Inkscape to get the colorbars and text to look good.
 The svg figures are created so I can import the colorbar directly in Inkscape.
 
 
-### 5. Evaluating SynthSeg performance
+### 6. Evaluating SynthSeg performance
 
 I made a script that gathers the brain masks from all subjects over a certain dice score.
+Because this uses the MNI152Nlin6Asym-space brain masks it has to be run after ModelArray.
 To run this whole thing you can
 
 ```bash
@@ -256,14 +289,14 @@ python si_figure_2.py
 This will produce a ton of single pngs that I put together in Inkscape.
 
 
-### 6. Making the rest of the figures
+### 7. Making the rest of the figures
 
 The rest of the figures need demographics files so we can filter out subjects/sessions that are missing age info.
 Since this info is protected by a DUC, we do not include it in this repo.
 We will figure out how to share this upon reasonable request when the DUC system is more clear.
 Critical note: I downloaded some subjects/sessions after compiling the dataset for this paper :facepalm:.
 There are therefore some additional subjects/sessions that we don't have the full work-up for and haven't verified the demographics.
-To match the exact info used for the paper, use the `hbcd_1.0.0RC0_scanner_qc.csv` I created when I started working on this paper.
+To match the exact info used for the paper, use the `hbcd_complete_qc_demographics.csv` I created when I started working on this paper.
 
 
 ```bash
