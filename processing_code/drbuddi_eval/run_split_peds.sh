@@ -25,5 +25,5 @@ done
 mkdir -p "${OUTDIR}/nodrbuddi/${sesid}"
 python split_peds.py \
     "$HOME"/pipeline_paper/penn-run/derivatives/no-drbuddi-1.0.0/qsiprep \
-    "${OUTDIR}/nodrbuddi
+    "${OUTDIR}/nodrbuddi"
 
