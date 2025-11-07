@@ -157,8 +157,8 @@ Next we compute FA on the AP and PA scans again using TORTOISE.
 The script for this is `processing_code/drbuddi_eval/compute_fas.sh`.
 Continuing from the session above:
 
-```bash
-bash compute_fas.sh
+```bash 
+python compute_fas.py
 ```
 
 This is also parallelized and will finish pretty quickly.

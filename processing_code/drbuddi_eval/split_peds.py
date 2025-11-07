@@ -14,6 +14,11 @@ import shutil
 from concurrent.futures import ProcessPoolExecutor
 
 
+home = Path.home()
+# Default CSV path, mirroring calc_means.py behavior
+DEFAULT_SUB_SES_CSV = home / "tier2_local" / "code" / "hbcd_complete_qc_demographics.csv"
+
+
 def _extract_run_number(filename: str) -> int:
     match = re.search(r"_run-(\d+)_", filename)
     if match:
@@ -194,11 +199,45 @@ def split_peds(input_dir, output_dir, sub_id, ses_id):
     np.savetxt(output_dir / f"{sub_id}_{ses_id}_space-ACPC_desc-preproc_dir-PA_dwi.bmtxt", pa_bm, fmt='%.6g', delimiter=' ')
 
 
-def find_subject_sessions(input_dir):
+def read_subject_sessions_from_csv(csv_path: Path):
     """
-    Find the subject and session IDs in the input directory.
+    Read subject and session IDs from a CSV file, mirroring calc_means.py behavior.
+    Expects columns: 'subject_id', 'session_id'.
+    Returns a sorted list of unique (subject_id, session_id) tuples.
     """
-    return [(sub_id.name, ses_id.name) for sub_id in input_dir.glob("sub-*") for ses_id in sub_id.glob("ses-*")]
+    df = pd.read_csv(csv_path)
+    pairs = {(row["subject_id"], row["session_id"]) for _, row in df.iterrows()}
+    return sorted(pairs)
+
+
+def _preflight_missing_files(input_dir: Path, subject_sessions):
+    """
+    For each (sub_id, ses_id), check that required inputs exist:
+    - space-ACPC_desc-preproc_dwi.nii.gz
+    - corresponding confounds .tsv
+    - .bval and .bvec (bmtxt can be generated from these)
+    Returns:
+      valid_tasks: list of tasks (input_dir, output_dir, sub_id, ses_id) ready to run
+      missing_info: list of (sub_id, ses_id, missing_list)
+    """
+    missing_info = []
+    ready = []
+    for sub_id, ses_id in subject_sessions:
+        files = files_from_qsiprep(input_dir, sub_id, ses_id)
+        missing = []
+        if not files["dwi"].exists():
+            missing.append(f"DWI:{files['dwi'].name}")
+        if not files["confounds"].exists():
+            missing.append(f"confounds:{files['confounds'].name}")
+        if not files["bvals"].exists():
+            missing.append(f"bvals:{files['bvals'].name}")
+        if not files["bvecs"].exists():
+            missing.append(f"bvecs:{files['bvecs'].name}")
+        if missing:
+            missing_info.append((sub_id, ses_id, missing))
+        else:
+            ready.append((sub_id, ses_id))
+    return ready, missing_info
 
 
 def _split_wrapper(task):
@@ -215,11 +254,26 @@ def main():
     parser.add_argument("input_dir", type=Path, help="Path to the input directory")
     parser.add_argument("output_dir", type=Path, help="Path to the output directory")
     parser.add_argument("--workers", type=int, default=8, help="Number of parallel workers")
+    parser.add_argument("--csv", type=Path, default=DEFAULT_SUB_SES_CSV, help="CSV with subject_id and session_id (defaults to the calc_means.py CSV)")
     args = parser.parse_args()
 
-    subjects_sessions = find_subject_sessions(args.input_dir)
+    # Read subjects/sessions from CSV (mirrors calc_means.py source)
+    subjects_sessions = read_subject_sessions_from_csv(args.csv)
+
+    # Preflight: report any missing files and only run on valid pairs
+    ready_pairs, missing_info = _preflight_missing_files(args.input_dir, subjects_sessions)
+    if missing_info:
+        print("Preflight check: Missing required inputs for the following subject/session pairs:")
+        for sub_id, ses_id, missing in missing_info:
+            print(f"  {sub_id}_{ses_id}: missing {', '.join(missing)}")
+        print(f"Preflight summary: {len(ready_pairs)} ready, {len(missing_info)} with missing inputs.")
+
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    tasks = [(args.input_dir, args.output_dir, sub_id, ses_id) for sub_id, ses_id in subjects_sessions]
+    if not ready_pairs:
+        print("No valid subject/session pairs with all required inputs. Exiting.")
+        return
+
+    tasks = [(args.input_dir, args.output_dir, sub_id, ses_id) for sub_id, ses_id in ready_pairs]
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
         for sub_id, ses_id, err in tqdm(executor.map(_split_wrapper, tasks), total=len(tasks), desc="Splitting PEDs"):
             if err:
