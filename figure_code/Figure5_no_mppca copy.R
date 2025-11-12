@@ -13,11 +13,11 @@ suppressPackageStartupMessages({
 
 check_mppca_effect <- function(dice_max) {
   # Load shared plotting config (provides SCANNER_COLORS)
-  source(file.path("figure_code", "shared_config.R"))
+  source(file.path("shared_config.R"))
 
-  base_csv <- file.path("processing_code/inclusion", "hbcd_complete_qc_demographics.csv")
-  alt_csv <- file.path("figure_code", "no_mppca_or_gibbs_qc.csv")
-  out_dir <- file.path("figure_code")
+  base_csv <- file.path("hbcd_complete_qc_demographics.csv")
+  alt_csv <- file.path("no_mppca_or_gibbs_qc.csv")
+  out_dir <- getwd()
   dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 
   message(paste("Checking MP-PCA effect for dice max:", dice_max))
@@ -205,8 +205,8 @@ check_mppca_effect <- function(dice_max) {
       # Inset the grid to create padding and add shared axis labels on the outer boundaries
       grid_with_labels <- cowplot::ggdraw() +
         cowplot::draw_plot(grid_plot, x = 0.08, y = 0.10, width = 0.87, height = 0.87) +
-        cowplot::draw_label("No MP-PCA/RPG", x = 0.52, y = 0.05, vjust = 1, size = 12) +
-        cowplot::draw_label("Using MP-PCA/RPG", x = 0.03, y = 0.52, angle = 90, vjust = 1, size = 12)
+        cowplot::draw_label("No MP-PCA/Gibbs Unringing", x = 0.52, y = 0.05, vjust = 1, size = 12) +
+        cowplot::draw_label("Using MP-PCA/Gibbs Unringing", x = 0.03, y = 0.52, angle = 90, vjust = 1, size = 12)
 
       ggsave(file.path(out_dir, paste0("qc_scatter_facets_dice-max", dice_max, ".svg")), grid_with_labels, width = 7, height = 9, units = "in")
     }

@@ -67,26 +67,20 @@ save_svg_double_col <- function(filename, width = 7, height = 3.5) {
 
 # Additional utility functions can be added here as needed
 
-demos <- read.csv("hbcd_complete_qc_demographics.csv")
+if (file.exists("hbcd_complete_qc_demographics.csv")) {
+  demos <- read.csv("hbcd_complete_qc_demographics.csv")
+} else if (file.exists("figure_code/hbcd_complete_qc_demographics.csv")) {
+  demos <- read.csv("figure_code/hbcd_complete_qc_demographics.csv")
+} else {
+  stop("hbcd_complete_qc_demographics.csv not found")
+}
 
 print(paste(
-  "Number of rows with NA in gestational_age:",
-  sum(is.na(demos$gestational_age))
+  "Number of rows with NA in scans_gestational_age:",
+  sum(is.na(demos$scans_gestational_age))
 ))
-
-# Remove rows with NA in gestational_age
-demos <- demos %>%
-  filter(!is.na(gestational_age))
-
-# Verify removal
-print(paste("Number of rows remaining:", nrow(demos)))
-
 table(demos$session_id)
 
 # convert age to weeks
 demos <- demos %>%
-  mutate(age = age * 52.1429)
-
-# Remove rows in ses-V01 with gestational age > 60 weeks
-demos <- demos %>%
-  filter(!(session_id == "ses-V02" & gestational_age > 60))
+  mutate(age = scans_age * 52.1429)

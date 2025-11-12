@@ -158,7 +158,7 @@ The script for this is `processing_code/drbuddi_eval/compute_fas.sh`.
 Continuing from the session above:
 
 ```bash 
-python compute_fas.py
+bash compute_fas.sh
 ```
 
 This is also parallelized and will finish pretty quickly.
@@ -177,7 +177,7 @@ Finally, with the diffs all warped to NLin6, we get the group averages and plot 
 The averages are created with 
 
 ```bash
-bash calc_means.sh
+python calc_means.py
 ```
 
 This will produce a couple nifti files in `$REPRO_DIR/appa_diffs_mni/means` that you need to copy into `figure_code`.

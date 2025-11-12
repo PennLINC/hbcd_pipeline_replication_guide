@@ -6,12 +6,12 @@ source("shared_config.R")
 # color the points by Manufacturer
 
 # Select the variables of interest
-plot_vars <- c("age", "raw_neighbor_corr", "t1_neighbor_corr", "mean_fd", 
+plot_vars <- c("scans_age", "raw_neighbor_corr", "t1_neighbor_corr", "mean_fd", 
                "CNR1_median", "CNR2_median", "CNR3_median", "CNR4_median")
 
 # Create a mapping for better variable names
 var_labels <- c(
-  "age" = "Age",
+  "scans_age" = "Age",
   "raw_neighbor_corr" = "Unprocessed NDC",  # Keep original if no specific label needed
   "t1_neighbor_corr" = "Processed NDC",
   "mean_fd" = "Mean FD",

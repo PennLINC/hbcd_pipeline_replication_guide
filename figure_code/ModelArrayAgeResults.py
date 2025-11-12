@@ -11,9 +11,9 @@ import numpy as np
 
 plt.rcParams['figure.dpi'] = 800  # Set to desired DPI (e.g., 300 for high-quality)
 # CHANGE THIS!!
-results_dir = "/Users/mcieslak/projects/hbcd/hbcd_pipeline_replication_guide/rep2/modelarray"
+results_dir = "/Users/mcieslak/projects/hbcd/hbcd_pipeline_replication_guide/modelarray"
 # this directory should contain directories:
-#     - dsistudiotensor_fa_lm0 dsistudiotensor_md_lm0 mapmri_rtop_lm0
+#     - dsistudiotensor_fa_dice-max0.06_lm0 dsistudiotensor_md_dice-max0.06_lm0 mapmri_rtop_dice-max0.06_lm0
 
 
 # Constants that don't depend on the scalar name

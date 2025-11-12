@@ -12,9 +12,60 @@ import matplotlib.pyplot as plt
 plt.rcParams['figure.dpi'] = 800  # Set to desired DPI (e.g., 300 for high-quality)
 
 
+
+def limit_contiguous_white_columns(image, max_white_run):
+    """Return a copy of `image` with any contiguous runs of all-white columns
+    limited to at most `max_white_run` columns.
+
+    Works for 2D (H, W) and 3D (H, W, C) arrays. White is detected as 255 for
+    integer images and 1.0 for float images, across all channels if present.
+    """
+    if max_white_run is None or max_white_run < 0:
+        return image
+
+    # Determine white level depending on dtype
+    if np.issubdtype(image.dtype, np.floating):
+        white_val = 1.0
+        tol = 1e-6
+    else:
+        white_val = 255
+        tol = 0
+
+    # Compute per-pixel white mask
+    white_mask = image >= (white_val - tol)
+    if image.ndim == 3:
+        # Require all channels to be white
+        white_mask = white_mask.all(axis=2)
+
+    # Collapse along rows to get per-column white mask
+    col_white = white_mask.all(axis=0)
+
+    width = col_white.shape[0]
+    keep_indices = []
+    i = 0
+    while i < width:
+        if not col_white[i]:
+            keep_indices.append(i)
+            i += 1
+            continue
+        # Find end of the current white run [i, j)
+        j = i
+        while j < width and col_white[j]:
+            j += 1
+        run_len = j - i
+        keep_len = min(run_len, max_white_run)
+        keep_indices.extend(range(i, i + keep_len))
+        i = j
+
+    keep_indices = np.asarray(keep_indices, dtype=int)
+    if image.ndim == 2:
+        return image[:, keep_indices]
+    return image[:, keep_indices, :]
+
+
 cmap = 'plasma'
-vmax = 0.22
-vmin = 0.00001
+vmax = 0.15
+vmin = 0.02
 
 # Replace with the path where you downloaded the error mean images
 image_dir = Path.cwd() / "means"
@@ -36,12 +87,7 @@ slices = [
     },
 ]
 
-image_files = [
-    nim.math_img("img * mask_img", img=image_dir / "drbuddi_ses-V02_masked_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "nodrbuddi_ses-V02_masked_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "drbuddi_ses-V03_masked_FA.nii", mask_img=eroded_mask_image),
-    nim.math_img("img * mask_img", img=image_dir / "nodrbuddi_ses-V03_masked_FA.nii", mask_img=eroded_mask_image),
-]
+
 
 def plot_image_row(images, slice_dict, title):
     """Use nilearn to plot a row of slices from each image.
@@ -94,7 +140,7 @@ def plot_image_row(images, slice_dict, title):
     combined_sesv02 = np.vstack([pngs[0], pngs[2]])
     combined_sesv03 = np.vstack([pngs[1], pngs[3]])
     combined_image = np.hstack([combined_sesv03, combined_sesv02])
-    imageio.imwrite(f"{title}.png", combined_image)
+    imageio.imwrite(f"{title}.png", limit_contiguous_white_columns(combined_image, max_white_run=10))
 
     plot_img(
         img,
@@ -112,10 +158,18 @@ def plot_image_row(images, slice_dict, title):
         cmap=cmap,
     )
 
+dice_max = 1.0
+
+image_files = [
+    nim.math_img("img * mask_img", img=image_dir / f"drbuddi_ses-V02_masked_FA_dice-max{dice_max}.nii", mask_img=eroded_mask_image),
+    nim.math_img("img * mask_img", img=image_dir / f"nodrbuddi_ses-V02_masked_FA_dice-max{dice_max}.nii", mask_img=eroded_mask_image),
+    nim.math_img("img * mask_img", img=image_dir / f"drbuddi_ses-V03_masked_FA_dice-max{dice_max}.nii", mask_img=eroded_mask_image),
+    nim.math_img("img * mask_img", img=image_dir / f"nodrbuddi_ses-V03_masked_FA_dice-max{dice_max}.nii", mask_img=eroded_mask_image),
+]
 
 # Create plots for each slice configuration
 for slice_config in slices:
-    plot_image_row(image_files, slice_config["slice"], slice_config["title"])
+    plot_image_row(image_files, slice_config["slice"], slice_config["title"] + f"_dice-max{dice_max}")
 
 
 
